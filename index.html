@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>TerraEdge • BIOS 上電時序報告檢視器 (緊湊版)</title>
-
+    <title>TerraEdge • BIOS 上電時序報告檢視器</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:opsz@14..32&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
-
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
@@ -17,209 +15,129 @@
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             background: #f5f7fb;
-            font-family: 'Inter', 'Noto Sans TC', "PingFang TC", "Microsoft JhengHei", sans-serif;
-            color: #1e293b;
-            padding: 10px 8px;               /* 原本 24 16 → 縮小 */
-            min-height: 100vh;
-            font-size: 13px;
-            line-height: 1.35;
+            font-family: 'Inter','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;
+            color: #1e293b; padding: 12px 10px; min-height: 100vh;
+            font-size: 13.5px; line-height: 1.45;
         }
         .app-container { max-width: 1600px; margin: 0 auto; width: 100%; }
-
-        /* ---------- 上傳區（也縮小） ---------- */
         .header { margin-bottom: 10px; }
-        .header h1 { font-size: 18px; line-height: 1.25; margin-bottom: 8px; }
+        .header h1 { font-size: 18px; line-height: 1.3; margin-bottom: 8px; }
         .upload-area {
-            background: #ffffff; border-radius: 12px; padding: 8px 14px;
+            background: #fff; border-radius: 12px; padding: 10px 16px;
             border: 1px solid #e9eef4; display: flex; flex-wrap: wrap;
             align-items: center; justify-content: space-between; gap: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .file-btn {
-            background: #1e293b; color: white; border: none;
-            padding: 6px 14px; border-radius: 30px; cursor: pointer;
-            transition: 0.15s; display: inline-flex; align-items: center;
-            gap: 6px; font-size: 12.5px; font-family: inherit;
+            background: #1e293b; color: #fff; border: none; padding: 7px 16px;
+            border-radius: 24px; cursor: pointer; transition: 0.15s;
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 13px; font-family: inherit;
         }
         .file-btn:hover { background: #0f172a; }
-
-        /* ---------- 報告容器（padding 大幅縮小） ---------- */
         .report-viewer {
-            background: #ffffff; border-radius: 12px; padding: 12px 14px;
+            background: #fff; border-radius: 12px; padding: 14px 16px;
             margin-top: 10px; border: 1px solid #eef2f6; min-height: 300px;
             box-shadow: 0 4px 14px rgba(0,0,0,0.04);
         }
-
         .loading-overlay {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; background: rgba(255,255,255,0.85);
             z-index: 1000; justify-content: center; align-items: center;
-            font-weight: 600; font-size: 14px;
+            font-weight: 600; font-size: 15px;
         }
 
-        /* ============================================================
-           markdown-body：緊湊排版（最小行高、最小間距）
-           ============================================================ */
+        /* ================== markdown-body 完整緊湊排版 ================== */
         .markdown-body {
-            font-size: 13.5px;
-            line-height: 1.35;                /* 行高 1.75 → 1.35 */
-            color: #1e293b;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            font-feature-settings: "liga" 1, "calt" 1;
-            letter-spacing: 0.005em;
+            font-size: 13.5px; line-height: 1.45; color: #1e293b;
+            word-wrap: break-word; overflow-wrap: break-word;
         }
 
-        /* ---------- 標題（間距大幅壓縮） ---------- */
-        .markdown-body h1,
-        .markdown-body h2,
-        .markdown-body h3,
-        .markdown-body h4,
-        .markdown-body h5,
-        .markdown-body h6 {
-            font-weight: 700;
-            line-height: 1.25;
-            margin: 0.5em 0 0.2em;            /* 1.6em/0.7em → 0.5em/0.2em */
-            color: #0f172a;
+        /* 標題 */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3,
+        .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+            font-weight: 700; line-height: 1.3; color: #0f172a;
+            margin: 0.7em 0 0.35em;
         }
-        .markdown-body h1 { font-size: 1.55em; border-bottom: 1px solid #eef2f6; padding-bottom: 0.15em; margin-top: 0; }
-        .markdown-body h2 { font-size: 1.3em;  border-bottom: 1px solid #eef2f6; padding-bottom: 0.12em; }
-        .markdown-body h3 { font-size: 1.12em; }
-        .markdown-body h4 { font-size: 1em; }
-        .markdown-body h5, .markdown-body h6 { font-size: 0.95em; color: #475569; }
+        .markdown-body h1 { font-size: 1.6em; border-bottom: 1px solid #eef2f6; padding-bottom: 0.2em; margin-top: 0; }
+        .markdown-body h2 { font-size: 1.32em; border-bottom: 1px solid #eef2f6; padding-bottom: 0.15em; }
+        .markdown-body h3 { font-size: 1.14em; }
+        .markdown-body h4 { font-size: 1.02em; }
+        .markdown-body h5, .markdown-body h6 { font-size: 0.96em; color: #475569; }
 
-        /* ---------- 段落 ---------- */
-        .markdown-body p { margin: 0.25em 0; }
+        /* 段落 */
+        .markdown-body p { margin: 0.35em 0; }
         .markdown-body p:first-child { margin-top: 0; }
         .markdown-body p:last-child  { margin-bottom: 0; }
 
-        /* ---------- 清單（縮排縮小、項目間距 0） ---------- */
-        .markdown-body ul,
-        .markdown-body ol {
-            margin: 0.25em 0;
-            padding-left: 1.4em;              /* 2em → 1.4em */
-        }
+        /* 清單 */
+        .markdown-body ul, .markdown-body ol { margin: 0.35em 0; padding-left: 1.6em; }
         .markdown-body ul { list-style: disc; }
         .markdown-body ol { list-style: decimal; }
         .markdown-body ul ul { list-style: circle; }
         .markdown-body ul ul ul { list-style: square; }
         .markdown-body ol ol { list-style: lower-alpha; }
-        .markdown-body ol ol ol { list-style: lower-roman; }
-        .markdown-body li { margin: 0; }      /* 0.3em → 0 */
-        .markdown-body li > p { margin: 0; }
-        .markdown-body li > ul,
-        .markdown-body li > ol { margin: 0; }
+        .markdown-body li { margin: 0.1em 0; }
+        .markdown-body li > p { margin: 0.1em 0; }
+        .markdown-body li > ul, .markdown-body li > ol { margin: 0.1em 0; }
 
-        .markdown-body li.task-list-item { list-style: none; margin-left: -1.2em; padding-left: 1.2em; }
-        .markdown-body li.task-list-item input[type="checkbox"] { margin-right: 0.35em; vertical-align: middle; }
+        .markdown-body li.task-list-item { list-style: none; margin-left: -1.4em; padding-left: 1.4em; }
+        .markdown-body li.task-list-item input { margin-right: 0.4em; vertical-align: middle; }
 
-        /* ---------- 引用（內距縮小） ---------- */
+        /* 引用 */
         .markdown-body blockquote {
-            margin: 0.4em 0;
-            padding: 0.25em 0.8em;            /* 0.6em 1.2em → 0.25em 0.8em */
-            border-left: 3px solid #cbd5e1;
-            background: #f8fafc;
-            color: #475569;
-            border-radius: 0 4px 4px 0;
+            margin: 0.5em 0; padding: 0.35em 0.9em;
+            border-left: 3px solid #cbd5e1; background: #f8fafc;
+            color: #475569; border-radius: 0 5px 5px 0;
         }
-        .markdown-body blockquote > :first-child { margin-top: 0; }
-        .markdown-body blockquote > :last-child  { margin-bottom: 0; }
 
-        /* ---------- 分隔線 ---------- */
-        .markdown-body hr { border: 0; border-top: 1px solid #eef2f6; margin: 0.6em 0; }
+        /* 分隔線 */
+        .markdown-body hr { border: 0; border-top: 1px solid #eef2f6; margin: 0.8em 0; }
 
-        /* ---------- 文字樣式 ---------- */
+        /* 文字樣式 */
         .markdown-body a { color: #2563eb; text-decoration: none; }
         .markdown-body a:hover { text-decoration: underline; }
         .markdown-body strong { font-weight: 700; color: #0f172a; }
-        .markdown-body em     { font-style: italic; }
-        .markdown-body del    { text-decoration: line-through; color: #94a3b8; }
-        .markdown-body img    { max-width: 100%; height: auto; border-radius: 4px; }
+        .markdown-body em { font-style: italic; }
+        .markdown-body del { text-decoration: line-through; color: #94a3b8; }
+        .markdown-body img { max-width: 100%; height: auto; border-radius: 4px; }
 
-        /* ---------- 行內程式碼（內距縮小） ---------- */
+        /* 行內程式碼 */
         .markdown-body :not(pre) > code {
-            background: #f1f5f9;
-            padding: 0 4px;                   /* 2px 6px → 0 4px */
-            border-radius: 3px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.88em;
-            color: #be185d;
-            word-break: break-word;
-            line-height: 1.25;
+            background: #f1f5f9; padding: 1px 5px; border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.88em;
+            color: #be185d; word-break: break-word;
         }
 
-        /* ---------- 程式碼區塊（內距縮小） ---------- */
+        /* 程式碼區塊 */
         .markdown-body pre {
-            background: #f6f8fa;
-            padding: 6px 10px;                /* 16px 18px → 6px 10px */
-            border-radius: 5px;
-            border: 1px solid #e2e8f0;
-            overflow-x: auto;
-            margin: 0.4em 0;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11.5px;
-            line-height: 1.35;                /* 程式碼區塊行高也壓低 */
+            background: #f6f8fa; padding: 8px 12px; border-radius: 6px;
+            border: 1px solid #e2e8f0; overflow-x: auto; margin: 0.5em 0;
+            font-family: 'JetBrains Mono', monospace; font-size: 11.5px; line-height: 1.4;
         }
         .markdown-body pre code {
-            background: transparent;
-            padding: 0;
-            color: inherit;
-            font-size: inherit;
-            line-height: inherit;
-            white-space: pre;
-            word-break: normal;
+            background: transparent; padding: 0; color: inherit;
+            font-size: inherit; line-height: inherit; white-space: pre; word-break: normal;
         }
 
-        /* ---------- 表格（padding 減半、行高壓低） ---------- */
+        /* 表格：外套 wrapper 做橫向滾動；table 保留原生 table layout */
         .table-wrapper {
-            overflow-x: auto;
-            margin: 0.5em 0;
-            border-radius: 4px;
-            border: 1px solid #e4e9f0;
-            background: #ffffff;
+            overflow-x: auto; margin: 0.6em 0; border-radius: 5px;
+            border: 1px solid #e4e9f0; background: #fff;
         }
-        .markdown-body table {
-            border-collapse: collapse;
-            width: 100%;
-            font-size: 12.5px;
-            line-height: 1.3;                 /* 表格內行高獨立壓縮 */
+        .markdown-body table { border-collapse: collapse; width: 100%; font-size: 12.5px; line-height: 1.35; }
+        .markdown-body table th, .markdown-body table td {
+            padding: 4px 9px; border: 1px solid #e4e9f0;
+            text-align: left; vertical-align: top; word-break: break-word;
         }
-        .markdown-body table th,
-        .markdown-body table td {
-            padding: 3px 8px;                 /* 10px 14px → 3px 8px */
-            border: 1px solid #e4e9f0;
-            text-align: left;
-            vertical-align: top;
-            word-break: break-word;
-        }
-        .markdown-body table th {
-            background: #f8fafd;
-            font-weight: 600;
-            color: #0f172a;
-            white-space: nowrap;
-        }
+        .markdown-body table th { background: #f8fafd; font-weight: 600; color: #0f172a; }
         .markdown-body table tbody tr:nth-child(even) td { background: #fafbfc; }
         .markdown-body table tbody tr:hover td { background: #f1f5f9; }
 
-        /* ---------- Mermaid ---------- */
-        .markdown-body .mermaid {
-            text-align: center;
-            margin: 0.5em 0;
-            overflow-x: auto;
-        }
-
-        /* ---------- 腳註 ---------- */
-        .markdown-body .footnotes {
-            margin-top: 0.8em;
-            padding-top: 0.5em;
-            border-top: 1px solid #eef2f6;
-            font-size: 0.88em;
-            color: #64748b;
-        }
-        .markdown-body .footnotes ol { padding-left: 1em; }
+        /* Mermaid */
+        .markdown-body .mermaid { text-align: center; margin: 0.6em 0; overflow-x: auto; }
     </style>
 </head>
 <body>
@@ -229,35 +147,22 @@
         <div class="header">
             <h1>⚡ TerraEdge BIOS • 報告檢視器</h1>
             <div class="upload-area">
-                <input type="file" id="fileInput"
-                       accept=".md,.markdown,text/markdown,text/plain" style="display:none">
-                <button class="file-btn" type="button"
-                        onclick="document.getElementById('fileInput').click()">
-                    📂 選擇 .md 報告
-                </button>
-                <span id="fileName" style="color: #64748b; font-size: 12.5px;">未選擇任何檔案</span>
-                <button class="file-btn" style="background:#ef4444;" id="clearBtn" type="button">
-                    🗑️ 清空
-                </button>
+                <input type="file" id="fileInput" accept=".md,.markdown,text/markdown,text/plain" style="display:none">
+                <button class="file-btn" type="button" onclick="document.getElementById('fileInput').click()">📂 選擇 .md 報告</button>
+                <span id="fileName" style="color: #64748b; font-size: 13px;">未選擇任何檔案</span>
+                <button class="file-btn" style="background:#ef4444;" id="clearBtn" type="button">🗑️ 清空</button>
             </div>
         </div>
-
         <div class="report-viewer" id="reportViewer">
-            <p style="text-align:center; color:#94a3b8; padding:80px 0;">
-                請上傳由 Python 腳本產出的 BIOS Log 分析報告
-            </p>
+            <p style="text-align:center; color:#94a3b8; padding:80px 0;">請上傳由 Python 腳本產出的 BIOS Log 分析報告</p>
         </div>
     </div>
 
 <script>
-/* ==========================================================================
-   1. 初始化 Mermaid
-   ========================================================================== */
+/* ---- Mermaid 初始化 ---- */
 if (window.mermaid) {
     mermaid.initialize({
-        startOnLoad: false,
-        theme: 'default',
-        securityLevel: 'loose',
+        startOnLoad: false, theme: 'default', securityLevel: 'loose',
         fontFamily: 'Inter, "Noto Sans TC", sans-serif',
         flowchart: { htmlLabels: true, useMaxWidth: true },
         sequence:  { useMaxWidth: true },
@@ -265,22 +170,19 @@ if (window.mermaid) {
     });
 }
 
-/* ==========================================================================
-   2. 初始化 marked
-   ========================================================================== */
+/* ---- marked 初始化（v11 不再支援 highlight 選項）---- */
 marked.setOptions({
     gfm: true,
     breaks: false,
     pedantic: false,
     mangle: false,
-    headerIds: false,
-    smartLists: true,
-    smartypants: false
+    headerIds: false
 });
 
-/* ==========================================================================
-   3. 前處理：表格 / 程式碼圍欄前補空行
-   ========================================================================== */
+/* ============================================================
+   前處理 1：補空行（表格 / 圍欄 / 列表）
+   前處理 2：表格內 \X 轉義保護（避免 \D 被吞成 D）
+   ============================================================ */
 function normalizeMarkdown(text) {
     text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     const lines = text.split('\n');
@@ -289,9 +191,10 @@ function normalizeMarkdown(text) {
     let fenceChar = '';
 
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+        let line = lines[i];
         const topFence = line.match(/^(```+|~~~+)/);
 
+        // 1. 處理程式碼區塊 (Fence)
         if (topFence) {
             if (!inFence) {
                 const prev = out[out.length - 1];
@@ -309,62 +212,79 @@ function normalizeMarkdown(text) {
                 continue;
             }
         }
+
         if (inFence) { out.push(line); continue; }
 
+        // 2. 處理表格 (Table)
         const isTableLine = /^\s*\|/.test(line);
         if (isTableLine) {
             const prev = out[out.length - 1];
             if (prev !== undefined && prev.trim() !== '' && !/^\s*\|/.test(prev)) {
                 out.push('');
             }
+            // 把 \X（X 非特殊字元）轉成 \\X，避免 Windows 路徑反斜線被吞
+            line = line.replace(/(^|[^\\`])\\(?=[A-Za-z])/g, '$1\\\\');
+            out.push(line);
+            continue;
         }
+
+        // 3. 處理列表項 (List Item) - 為了解決緊貼文字導致解析失敗的問題
+        const isListItem = /^\s*(?:\d+\.|[-*+])\s+/.test(line);
+        if (isListItem) {
+            const prev = out[out.length - 1];
+            if (prev !== undefined && prev.trim() !== '') {
+                const isPrevListItem = /^\s*(?:\d+\.|[-*+])\s+/.test(prev);
+                const isPrevHeading = /^\s*#/.test(prev);
+                const isPrevTable = /^\s*\|/.test(prev);
+                const isPrevFence = /^\s*(```+|~~~+)/.test(prev);
+                
+                // 如果上一行不是列表、標題、表格或程式碼區塊，代表是普通文字段落
+                // 必須插入空行，Markdown 才能正確識別這是一個「列表」而不是段落的延續
+                if (!isPrevListItem && !isPrevHeading && !isPrevTable && !isPrevFence) {
+                    out.push('');
+                }
+            }
+        }
+
         out.push(line);
     }
     return out.join('\n');
 }
 
-/* ==========================================================================
-   4. 表格包 wrapper
-   ========================================================================== */
+/* 表格外包 .table-wrapper */
 function wrapTables(root) {
-    root.querySelectorAll('table').forEach((table) => {
+    root.querySelectorAll('table').forEach(table => {
         if (table.parentElement && table.parentElement.classList.contains('table-wrapper')) return;
-        const wrapper = document.createElement('div');
-        wrapper.className = 'table-wrapper';
-        table.parentNode.insertBefore(wrapper, table);
-        wrapper.appendChild(table);
+        const w = document.createElement('div');
+        w.className = 'table-wrapper';
+        table.parentNode.insertBefore(w, table);
+        w.appendChild(table);
     });
 }
 
-/* ==========================================================================
-   5. Mermaid 佔位替換
-   ========================================================================== */
-function replaceMermaidCodeBlocks(root) {
-    root.querySelectorAll('pre > code').forEach((code) => {
-        const classes = code.className || '';
-        if (!/\blanguage-mermaid\b/.test(classes)) return;
-        const container = document.createElement('div');
-        container.className = 'mermaid';
-        container.textContent = code.textContent;
-        const pre = code.parentElement;
-        pre.replaceWith(container);
+/* pre code.language-mermaid → div.mermaid */
+function replaceMermaid(root) {
+    root.querySelectorAll('pre > code').forEach(code => {
+        if (!/\blanguage-mermaid\b/.test(code.className || '')) return;
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = code.textContent;
+        code.parentElement.replaceWith(div);
     });
 }
 
-/* ==========================================================================
-   6. 程式碼高亮
-   ========================================================================== */
-function highlightCodeBlocks(root) {
-    root.querySelectorAll('pre > code').forEach((code) => {
+/* 手動語法高亮 */
+function highlightAll(root) {
+    root.querySelectorAll('pre > code').forEach(code => {
         if (code.classList.contains('hljs')) return;
         if (code.parentElement.querySelector('.mermaid')) return;
-        try { hljs.highlightElement(code); } catch (err) {}
+        try { hljs.highlightElement(code); } catch (e) { /* 忽略未知語言 */ }
     });
 }
 
-/* ==========================================================================
-   7. 主流程
-   ========================================================================== */
+/* ============================================================
+   主流程
+   ============================================================ */
 const fileInput    = document.getElementById('fileInput');
 const reportViewer = document.getElementById('reportViewer');
 const loading      = document.getElementById('loading');
@@ -372,58 +292,49 @@ const loading      = document.getElementById('loading');
 fileInput.addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
-
     document.getElementById('fileName').textContent = file.name;
     loading.style.display = 'flex';
 
     const reader = new FileReader();
 
-    reader.onload = async function (event) {
+    reader.onload = async function (ev) {
         await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
         try {
-            const raw = event.target.result;
+            const raw = ev.target.result;
             const normalized = normalizeMarkdown(raw);
-            const rawHtml = marked.parse(normalized);
-            const cleanHtml = DOMPurify.sanitize(rawHtml, {
-                ADD_ATTR: ['target', 'rel', 'align', 'colspan', 'rowspan', 'class', 'id', 'checked', 'disabled', 'type'],
-                FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed'],
-                FORBID_ATTR: ['onerror', 'onclick', 'onload']
+            const html = marked.parse(normalized);
+            const clean = DOMPurify.sanitize(html, {
+                ADD_ATTR: ['target','rel','align','colspan','rowspan','class','id',
+                           'checked','disabled','type','start','value']
             });
 
-            reportViewer.innerHTML = `<div class="markdown-body">${cleanHtml}</div>`;
+            reportViewer.innerHTML = `<div class="markdown-body">${clean}</div>`;
             const body = reportViewer.querySelector('.markdown-body');
 
-            replaceMermaidCodeBlocks(body);
-            highlightCodeBlocks(body);
+            // 讓 <ol> 完全依 Markdown 原始編號顯示
+            replaceMermaid(body);
+            highlightAll(body);
             wrapTables(body);
 
             if (body.querySelector('.mermaid')) {
-                try {
-                    await mermaid.run({ querySelector: '.markdown-body .mermaid' });
-                } catch (err) {
-                    console.warn('[mermaid] render failed:', err);
-                }
+                try { await mermaid.run({ querySelector: '.markdown-body .mermaid' }); }
+                catch (err) { console.warn('[mermaid]', err); }
             }
 
             body.querySelectorAll('a[href^="http"]').forEach(a => {
                 a.setAttribute('target', '_blank');
                 a.setAttribute('rel', 'noopener noreferrer');
             });
-
         } catch (err) {
             console.error(err);
             reportViewer.innerHTML =
-                `<p style="color:#ef4444; padding:20px; text-align:center;">渲染錯誤：${err.message}</p>`;
+                `<p style="color:#ef4444;padding:20px;text-align:center;">渲染錯誤：${err.message}</p>`;
         } finally {
             loading.style.display = 'none';
         }
     };
 
-    reader.onerror = function () {
-        loading.style.display = 'none';
-        alert('檔案讀取失敗，請確認檔案編碼為 UTF-8');
-    };
-
+    reader.onerror = () => { loading.style.display = 'none'; alert('檔案讀取失敗'); };
     reader.readAsText(file, 'UTF-8');
 });
 

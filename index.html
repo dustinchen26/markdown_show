@@ -105,7 +105,8 @@
         .markdown-body a:hover { text-decoration: underline; }
         .markdown-body strong { font-weight: 700; color: #0f172a; }
         .markdown-body em { font-style: italic; }
-        .markdown-body del { text-decoration: line-through; color: #94a3b8; }
+        /* 強制取消刪除線，避免 OCR 文字被錯誤加上橫線 */
+        .markdown-body del, .markdown-body strike, .markdown-body s { text-decoration: none !important; color: inherit !important; }
         .markdown-body img { max-width: 100%; height: auto; border-radius: 4px; }
 
         /* 行內程式碼 */
@@ -188,7 +189,7 @@ marked.setOptions({
 
 /* ============================================================
    前處理 1：補空行（表格 / 圍欄 / 列表）
-   前處理 2：表格內 \X 轉義保護（避免 \D 被吞成 D）
+   前處理 2：表格內 \X 與 * 轉義保護
    ============================================================ */
 function normalizeMarkdown(text) {
     text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -201,7 +202,6 @@ function normalizeMarkdown(text) {
         let line = lines[i];
         const topFence = line.match(/^(```+|~~~+)/);
 
-        // 1. 處理程式碼區塊 (Fence)
         if (topFence) {
             if (!inFence) {
                 const prev = out[out.length - 1];
@@ -222,7 +222,6 @@ function normalizeMarkdown(text) {
 
         if (inFence) { out.push(line); continue; }
 
-        // 2. 處理表格 (Table)
         const isTableLine = /^\s*\|/.test(line);
         if (isTableLine) {
             const prev = out[out.length - 1];
@@ -230,11 +229,11 @@ function normalizeMarkdown(text) {
                 out.push('');
             }
             line = line.replace(/(^|[^\\`])\\(?=[A-Za-z])/g, '$1\\\\');
+            line = line.replace(/(^|[^\\`])\*(?=[A-Za-z0-9])/g, '$1\\*');
             out.push(line);
             continue;
         }
 
-        // 3. 處理列表項 (List Item) - 為了解決緊貼文字導致解析失敗的問題
         const isListItem = /^\s*(?:\d+\.|[-*+])\s+/.test(line);
         if (isListItem) {
             const prev = out[out.length - 1];
@@ -328,7 +327,6 @@ fileInput.addEventListener('change', function (e) {
                 a.setAttribute('rel', 'noopener noreferrer');
             });
 
-            // 渲染成功後啟用匯出按鈕
             exportWordBtn.disabled = false;
 
         } catch (err) {
@@ -346,26 +344,20 @@ fileInput.addEventListener('change', function (e) {
 document.getElementById('clearBtn').onclick = () => location.reload();
 
 /* ============================================================
-   匯出 Word 功能 (使用 MHTML 封裝，保留 HTML 排版與 CSS)
+   匯出 Word 功能
    ============================================================ */
 exportWordBtn.addEventListener('click', () => {
     const body = reportViewer.querySelector('.markdown-body');
     if (!body) return;
 
-    // 複製一份 DOM 以避免影響原本網頁畫面
     const clone = body.cloneNode(true);
-
-    // 移除 table-wrapper，避免 Word 排版異常
     clone.querySelectorAll('.table-wrapper').forEach(wrapper => {
         wrapper.replaceWith(...wrapper.childNodes);
     });
 
-    // 取得當前檔名（去掉 .md）
     let filename = document.getElementById('fileName').textContent || 'BIOS_Report';
     filename = filename.replace(/\.md$/i, '');
     
-    // 構建 Word 專用的 HTML
-    // 為了讓 Word 正確渲染表格與程式碼，這裡寫入內聯 CSS
     const header = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' 
               xmlns:w='urn:schemas-microsoft-com:office:word' 
@@ -386,13 +378,9 @@ exportWordBtn.addEventListener('click', () => {
                 p { margin: 0.5em 0; }
                 ul, ol { margin-top: 0.5em; margin-bottom: 0.5em; padding-left: 20px; }
                 li { margin-bottom: 3px; }
-                
-                /* 表格樣式 */
                 table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 10pt; }
                 th, td { border: 1px solid #c0c0c0; padding: 6px 10px; text-align: left; vertical-align: top; }
                 th { background-color: #f2f2f2; font-weight: bold; }
-                
-                /* 程式碼區塊 */
                 pre { 
                     background-color: #f6f8fa; border: 1px solid #e2e8f0; padding: 10px; 
                     font-family: 'Consolas', 'Courier New', monospace; font-size: 9.5pt; 
@@ -400,8 +388,6 @@ exportWordBtn.addEventListener('click', () => {
                 }
                 code { font-family: 'Consolas', 'Courier New', monospace; font-size: 9.5pt; background: #f1f5f9; padding: 2px 4px; }
                 pre code { background: transparent; padding: 0; }
-                
-                /* 其他 */
                 blockquote { border-left: 3px solid #ccc; padding-left: 10px; color: #666; margin-left: 0; }
                 a { color: #2563eb; text-decoration: underline; }
                 hr { border: none; border-top: 1px solid #eee; margin: 20px 0; }
@@ -412,13 +398,12 @@ exportWordBtn.addEventListener('click', () => {
     const footer = `</body></html>`;
     const html = header + clone.innerHTML + footer;
 
-    // 加入 BOM (\ufeff) 避免 Word 開啟時中文亂碼
     const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
     
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${filename}.doc`; // 使用 .doc 副檔名讓 Word 能直接開啟
+    link.download = `${filename}.doc`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

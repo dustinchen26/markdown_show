@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>markdown檢視器</title>
+    <title>Markdown 檢視器</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:opsz@14..32&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -17,74 +17,120 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background: #f5f7fb;
-            font-family: 'Inter','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;
-            color: #1e293b; padding: 12px 10px; min-height: 100vh;
-            font-size: 13.5px; line-height: 1.45;
+            font-family: 'Inter', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            color: #1e293b;
+            padding: 12px 10px;
+            min-height: 100vh;
+            font-size: 13.5px;
+            line-height: 1.5;
         }
         .app-container { max-width: 1600px; margin: 0 auto; width: 100%; }
         .header { margin-bottom: 10px; }
-        .header h1 { font-size: 18px; line-height: 1.3; margin-bottom: 8px; }
+        .header h1 { font-size: 18px; line-height: 1.3; margin-bottom: 8px; color: #0f172a; }
         .upload-area {
-            background: #fff; border-radius: 12px; padding: 10px 16px;
-            border: 1px solid #e9eef4; display: flex; flex-wrap: wrap;
-            align-items: center; justify-content: space-between; gap: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            background: #fff;
+            border-radius: 12px;
+            padding: 10px 16px;
+            border: 1px solid #e9eef4;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
         .btn-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .file-btn {
-            background: #1e293b; color: #fff; border: none; padding: 7px 16px;
-            border-radius: 24px; cursor: pointer; transition: 0.15s;
-            display: inline-flex; align-items: center; gap: 6px;
-            font-size: 13px; font-family: inherit;
+            background: #1e293b;
+            color: #fff;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-family: inherit;
         }
         .file-btn:hover { background: #0f172a; }
         .file-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
         .export-btn { background: #10b981; }
         .export-btn:hover { background: #059669; }
+        .clear-btn { background: #ef4444; }
+        .clear-btn:hover { background: #dc2626; }
         .report-viewer {
-            background: #fff; border-radius: 12px; padding: 14px 16px;
-            margin-top: 10px; border: 1px solid #eef2f6; min-height: 300px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 10px;
+            border: 1px solid #eef2f6;
+            min-height: 300px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
         }
         .loading-overlay {
-            display: none; position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; background: rgba(255,255,255,0.85);
-            z-index: 1000; justify-content: center; align-items: center;
-            font-weight: 600; font-size: 15px;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: 15px;
+            color: #0f172a;
         }
 
         /* ================== markdown-body 完整緊湊排版 ================== */
         .markdown-body {
-            font-size: 13.5px; line-height: 1.45; color: #1e293b;
-            word-wrap: break-word; overflow-wrap: break-word;
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: #1e293b;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         /* 標題 */
         .markdown-body h1, .markdown-body h2, .markdown-body h3,
         .markdown-body h4, .markdown-body h5, .markdown-body h6 {
-            font-weight: 700; line-height: 1.3; color: #0f172a;
-            margin: 0.7em 0 0.35em;
+            font-weight: 700;
+            line-height: 1.32;
+            color: #0f172a;
+            margin: 0.85em 0 0.4em;
         }
-        .markdown-body h1 { font-size: 1.6em; border-bottom: 1px solid #eef2f6; padding-bottom: 0.2em; margin-top: 0; }
-        .markdown-body h2 { font-size: 1.32em; border-bottom: 1px solid #eef2f6; padding-bottom: 0.15em; }
+        .markdown-body h1 {
+            font-size: 1.55em;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.25em;
+            margin-top: 0;
+        }
+        .markdown-body h2 {
+            font-size: 1.3em;
+            border-bottom: 1px solid #eef2f6;
+            padding-bottom: 0.2em;
+        }
         .markdown-body h3 { font-size: 1.14em; }
         .markdown-body h4 { font-size: 1.02em; }
         .markdown-body h5, .markdown-body h6 { font-size: 0.96em; color: #475569; }
 
         /* 段落 */
-        .markdown-body p { margin: 0.35em 0; }
+        .markdown-body p { margin: 0.4em 0; }
         .markdown-body p:first-child { margin-top: 0; }
-        .markdown-body p:last-child  { margin-bottom: 0; }
+        .markdown-body p:last-child { margin-bottom: 0; }
 
         /* 清單 */
-        .markdown-body ul, .markdown-body ol { margin: 0.35em 0; padding-left: 1.6em; }
+        .markdown-body ul, .markdown-body ol { margin: 0.35em 0; padding-left: 1.65em; }
         .markdown-body ul { list-style: disc; }
         .markdown-body ol { list-style: decimal; }
         .markdown-body ul ul { list-style: circle; }
         .markdown-body ul ul ul { list-style: square; }
         .markdown-body ol ol { list-style: lower-alpha; }
-        .markdown-body li { margin: 0.1em 0; }
-        .markdown-body li > p { margin: 0.1em 0; }
+        .markdown-body li { margin: 0.14em 0; }
+        .markdown-body li > p { margin: 0.12em 0; }
         .markdown-body li > ul, .markdown-body li > ol { margin: 0.1em 0; }
 
         .markdown-body li.task-list-item { list-style: none; margin-left: -1.4em; padding-left: 1.4em; }
@@ -92,52 +138,90 @@
 
         /* 引用 */
         .markdown-body blockquote {
-            margin: 0.5em 0; padding: 0.35em 0.9em;
-            border-left: 3px solid #cbd5e1; background: #f8fafc;
-            color: #475569; border-radius: 0 5px 5px 0;
+            margin: 0.55em 0;
+            padding: 0.4em 0.95em;
+            border-left: 3.5px solid #94a3b8;
+            background: #f8fafc;
+            color: #475569;
+            border-radius: 0 6px 6px 0;
         }
 
         /* 分隔線 */
-        .markdown-body hr { border: 0; border-top: 1px solid #eef2f6; margin: 0.8em 0; }
+        .markdown-body hr { border: 0; border-top: 1px solid #e2e8f0; margin: 0.9em 0; }
 
         /* 文字樣式 */
         .markdown-body a { color: #2563eb; text-decoration: none; }
         .markdown-body a:hover { text-decoration: underline; }
         .markdown-body strong { font-weight: 700; color: #0f172a; }
         .markdown-body em { font-style: italic; }
-        /* 強制取消刪除線，避免 OCR 文字被錯誤加上橫線 */
-        .markdown-body del, .markdown-body strike, .markdown-body s { text-decoration: none !important; color: inherit !important; }
+        /* 強制取消刪除線，避免 OCR 或技術符號被誤加橫線 */
+        .markdown-body del, .markdown-body strike, .markdown-body s {
+            text-decoration: none !important;
+            color: inherit !important;
+        }
         .markdown-body img { max-width: 100%; height: auto; border-radius: 4px; }
 
         /* 行內程式碼 */
         .markdown-body :not(pre) > code {
-            background: #f1f5f9; padding: 1px 5px; border-radius: 3px;
-            font-family: 'JetBrains Mono', monospace; font-size: 0.88em;
-            color: #be185d; word-break: break-word;
+            background: #f1f5f9;
+            padding: 1.5px 5px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Noto Sans TC', monospace;
+            font-size: 0.88em;
+            color: #be185d;
+            word-break: break-word;
         }
 
-        /* 程式碼區塊 */
+        /* 程式碼區塊（含 ASCII 樹狀圖、框線與終端機輸出） */
         .markdown-body pre {
-            background: #f6f8fa; padding: 8px 12px; border-radius: 6px;
-            border: 1px solid #e2e8f0; overflow-x: auto; margin: 0.5em 0;
-            font-family: 'JetBrains Mono', monospace; font-size: 11.5px; line-height: 1.4;
+            background: #f6f8fa;
+            padding: 10px 14px;
+            border-radius: 7px;
+            border: 1px solid #e2e8f0;
+            overflow-x: auto;
+            margin: 0.55em 0;
+            font-family: 'JetBrains Mono', 'Noto Sans TC', monospace;
+            font-size: 12px;
+            line-height: 1.42;
+            tab-size: 4;
         }
         .markdown-body pre code {
-            background: transparent; padding: 0; color: inherit;
-            font-size: inherit; line-height: inherit; white-space: pre; word-break: normal;
+            background: transparent;
+            padding: 0;
+            color: #0f172a;
+            font-size: inherit;
+            line-height: inherit;
+            white-space: pre;
+            word-break: normal;
+            overflow-wrap: normal;
         }
 
-        /* 表格：外套 wrapper 做橫向滾動；table 保留原生 table layout */
+        /* 表格 */
         .table-wrapper {
-            overflow-x: auto; margin: 0.6em 0; border-radius: 5px;
-            border: 1px solid #e4e9f0; background: #fff;
+            overflow-x: auto;
+            margin: 0.6em 0;
+            border-radius: 6px;
+            border: 1px solid #e4e9f0;
+            background: #fff;
         }
-        .markdown-body table { border-collapse: collapse; width: 100%; font-size: 12.5px; line-height: 1.35; }
+        .markdown-body table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 12.5px;
+            line-height: 1.38;
+        }
         .markdown-body table th, .markdown-body table td {
-            padding: 4px 9px; border: 1px solid #e4e9f0;
-            text-align: left; vertical-align: top; word-break: break-word;
+            padding: 5px 10px;
+            border: 1px solid #e4e9f0;
+            text-align: left;
+            vertical-align: top;
+            word-break: break-word;
         }
-        .markdown-body table th { background: #f8fafd; font-weight: 600; color: #0f172a; }
+        .markdown-body table th {
+            background: #f8fafd;
+            font-weight: 600;
+            color: #0f172a;
+        }
         .markdown-body table tbody tr:nth-child(even) td { background: #fafbfc; }
         .markdown-body table tbody tr:hover td { background: #f1f5f9; }
 
@@ -150,13 +234,13 @@
 
     <div class="app-container">
         <div class="header">
-            <h1>markdown檢視器</h1>
+            <h1>Markdown 檢視器</h1>
             <div class="upload-area">
                 <div class="btn-group">
                     <input type="file" id="fileInput" accept=".md,.markdown,text/markdown,text/plain" style="display:none">
                     <button class="file-btn" type="button" onclick="document.getElementById('fileInput').click()">📂 選擇 .md 報告</button>
                     <button class="file-btn export-btn" id="exportWordBtn" type="button" disabled>📄 匯出 Word</button>
-                    <button class="file-btn" style="background:#ef4444;" id="clearBtn" type="button">🗑️ 清空</button>
+                    <button class="file-btn clear-btn" id="clearBtn" type="button">🗑️ 清空</button>
                 </div>
                 <span id="fileName" style="color: #64748b; font-size: 13px;">未選擇任何檔案</span>
             </div>
@@ -170,11 +254,13 @@
 /* ---- Mermaid 初始化 ---- */
 if (window.mermaid) {
     mermaid.initialize({
-        startOnLoad: false, theme: 'default', securityLevel: 'loose',
+        startOnLoad: false,
+        theme: 'default',
+        securityLevel: 'loose',
         fontFamily: 'Inter, "Noto Sans TC", sans-serif',
         flowchart: { htmlLabels: true, useMaxWidth: true },
-        sequence:  { useMaxWidth: true },
-        gantt:     { useMaxWidth: true }
+        sequence: { useMaxWidth: true },
+        gantt: { useMaxWidth: true }
     });
 }
 
@@ -188,8 +274,35 @@ marked.setOptions({
 });
 
 /* ============================================================
-   前處理 1：補空行（表格 / 圍欄 / 列表）
-   前處理 2：表格內 \X 與 * 轉義保護
+   判斷是否為 ASCII 框線 / 樹狀結構 / 終端機輸出列
+   ============================================================ */
+function isAsciiOrTerminalLine(line) {
+    const trimmed = line.trim();
+    if (!trimmed) return false;
+
+    // 1. 包含 Box-drawing 框線字元或樹狀符號
+    if (/[┌┐└┘├┤┬┴┼─│═║╔╗╚╝╠╣╦╩╬▶▸▾▼▲]/.test(line)) {
+        return true;
+    }
+
+    // 2. tree 指令輸出階層（如 ├──、└──、│   ├──、.）
+    if (/^(?:\.\s*$|│(?:\s{2,4}│|\s{2,4}[├└]──))/.test(line)) {
+        return true;
+    }
+
+    // 3. 常見 Shell / Git Bash / MobaXterm 提示字元或指令列
+    if (/^(?:[A-Za-z0-9._-]+@[A-Za-z0-9._-]+(?:\s+[A-Za-z0-9._-]+)?\s+[^\r\n]+|\$\s+.+|\*\s+[A-Za-z0-9._/-]+)$/.test(trimmed)) {
+        return true;
+    }
+
+    return false;
+}
+
+/* ============================================================
+   前處理：
+   1. 自動將未包圍欄的 ASCII 框線 / tree / 終端機區塊轉為 ```text
+   2. 補空行（表格 / 圍欄 / 頂層列表）
+   3. 表格內 \X 與 * 轉義保護
    ============================================================ */
 function normalizeMarkdown(text) {
     text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -197,12 +310,26 @@ function normalizeMarkdown(text) {
     const out = [];
     let inFence = false;
     let fenceChar = '';
+    let inAutoCode = false;
+
+    const closeAutoCodeIfNeeded = (nextLine) => {
+        if (inAutoCode) {
+            out.push('```');
+            inAutoCode = false;
+            if (nextLine !== undefined && nextLine.trim() !== '') {
+                out.push('');
+            }
+        }
+    };
 
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
+        const nextLine = lines[i + 1];
         const topFence = line.match(/^(```+|~~~+)/);
 
+        // 處理既有程式碼圍欄
         if (topFence) {
+            closeAutoCodeIfNeeded('');
             if (!inFence) {
                 const prev = out[out.length - 1];
                 if (prev !== undefined && prev.trim() !== '') out.push('');
@@ -214,14 +341,42 @@ function normalizeMarkdown(text) {
                 inFence = false;
                 fenceChar = '';
                 out.push(line);
-                const next = lines[i + 1];
-                if (next !== undefined && next.trim() !== '') out.push('');
+                if (nextLine !== undefined && nextLine.trim() !== '') out.push('');
                 continue;
             }
         }
 
-        if (inFence) { out.push(line); continue; }
+        if (inFence) {
+            out.push(line);
+            continue;
+        }
 
+        // 檢查是否為 ASCII 樹狀圖 / 框線 / 終端機輸出
+        const isAsciiLine = isAsciiOrTerminalLine(line);
+        // 允許連續 ASCII 區塊中夾雜緊鄰的 tree 統計列（例如 "70 directories, 16 files"）
+        const isTreeSummaryLine = inAutoCode && /^\d+\s+directories?,\s+\d+\s+files?/i.test(line.trim());
+
+        if (isAsciiLine || isTreeSummaryLine) {
+            if (!inAutoCode) {
+                const prev = out[out.length - 1];
+                if (prev !== undefined && prev.trim() !== '') out.push('');
+                out.push('```text');
+                inAutoCode = true;
+            }
+            out.push(line);
+
+            // 若下一行不是 ASCII/終端機列且不是 tree 統計列，則關閉自動圍欄
+            const nextIsAscii = nextLine !== undefined && isAsciiOrTerminalLine(nextLine);
+            const nextIsTreeSummary = nextLine !== undefined && /^\d+\s+directories?,\s+\d+\s+files?/i.test(nextLine.trim());
+            if (!nextIsAscii && !nextIsTreeSummary) {
+                closeAutoCodeIfNeeded(nextLine);
+            }
+            continue;
+        } else {
+            closeAutoCodeIfNeeded('');
+        }
+
+        // 表格前補空行，並保護表格內的反斜線與星號
         const isTableLine = /^\s*\|/.test(line);
         if (isTableLine) {
             const prev = out[out.length - 1];
@@ -234,15 +389,16 @@ function normalizeMarkdown(text) {
             continue;
         }
 
-        const isListItem = /^\s*(?:\d+\.|[-*+])\s+/.test(line);
-        if (isListItem) {
+        // 頂層列表前補空行（避免與一般段落黏在一起）
+        const isTopListItem = /^(?:\d+\.|[-*+])\s+/.test(line);
+        if (isTopListItem) {
             const prev = out[out.length - 1];
             if (prev !== undefined && prev.trim() !== '') {
                 const isPrevListItem = /^\s*(?:\d+\.|[-*+])\s+/.test(prev);
                 const isPrevHeading = /^\s*#/.test(prev);
                 const isPrevTable = /^\s*\|/.test(prev);
                 const isPrevFence = /^\s*(```+|~~~+)/.test(prev);
-                
+
                 if (!isPrevListItem && !isPrevHeading && !isPrevTable && !isPrevFence) {
                     out.push('');
                 }
@@ -251,6 +407,8 @@ function normalizeMarkdown(text) {
 
         out.push(line);
     }
+
+    closeAutoCodeIfNeeded('');
     return out.join('\n');
 }
 
@@ -277,6 +435,7 @@ function replaceMermaid(root) {
 function highlightAll(root) {
     root.querySelectorAll('pre > code').forEach(code => {
         if (code.classList.contains('hljs')) return;
+        if (/\blanguage-text\b/.test(code.className || '')) return;
         if (code.parentElement.querySelector('.mermaid')) return;
         try { hljs.highlightElement(code); } catch (e) { }
     });
@@ -285,9 +444,9 @@ function highlightAll(root) {
 /* ============================================================
    主流程
    ============================================================ */
-const fileInput    = document.getElementById('fileInput');
+const fileInput = document.getElementById('fileInput');
 const reportViewer = document.getElementById('reportViewer');
-const loading      = document.getElementById('loading');
+const loading = document.getElementById('loading');
 const exportWordBtn = document.getElementById('exportWordBtn');
 
 fileInput.addEventListener('change', function (e) {
@@ -306,8 +465,10 @@ fileInput.addEventListener('change', function (e) {
             const normalized = normalizeMarkdown(raw);
             const html = marked.parse(normalized);
             const clean = DOMPurify.sanitize(html, {
-                ADD_ATTR: ['target','rel','align','colspan','rowspan','class','id',
-                           'checked','disabled','type','start','value']
+                ADD_ATTR: [
+                    'target', 'rel', 'align', 'colspan', 'rowspan', 'class', 'id',
+                    'checked', 'disabled', 'type', 'start', 'value'
+                ]
             });
 
             reportViewer.innerHTML = `<div class="markdown-body">${clean}</div>`;
@@ -328,7 +489,6 @@ fileInput.addEventListener('change', function (e) {
             });
 
             exportWordBtn.disabled = false;
-
         } catch (err) {
             console.error(err);
             reportViewer.innerHTML = `<p style="color:#ef4444;padding:20px;text-align:center;">渲染錯誤：${err.message}</p>`;
@@ -337,7 +497,10 @@ fileInput.addEventListener('change', function (e) {
         }
     };
 
-    reader.onerror = () => { loading.style.display = 'none'; alert('檔案讀取失敗'); };
+    reader.onerror = () => {
+        loading.style.display = 'none';
+        alert('檔案讀取失敗');
+    };
     reader.readAsText(file, 'UTF-8');
 });
 
@@ -357,18 +520,18 @@ exportWordBtn.addEventListener('click', () => {
 
     let filename = document.getElementById('fileName').textContent || 'BIOS_Report';
     filename = filename.replace(/\.md$/i, '');
-    
+
     const header = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-              xmlns:w='urn:schemas-microsoft-com:office:word' 
-              xmlns='http://www.w3.org/TR/REC-html40'>
+        <html xmlns:o='urn:schemas-microsoft-com:office:office'
+              xmlns:w='urn:schemas-microsoft-com:office:word'
+              xmlns='[http://www.w3.org/TR/REC-html40](http://www.w3.org/TR/REC-html40)'>
         <head>
             <meta charset='utf-8'>
             <title>${filename}</title>
             <style>
                 @page { size: A4; margin: 2cm; }
-                body { 
-                    font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
+                body {
+                    font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
                     font-size: 11pt; line-height: 1.5; color: #1e293b;
                 }
                 h1, h2, h3, h4, h5, h6 { color: #0f172a; margin-top: 1.2em; margin-bottom: 0.5em; }
@@ -381,10 +544,10 @@ exportWordBtn.addEventListener('click', () => {
                 table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 10pt; }
                 th, td { border: 1px solid #c0c0c0; padding: 6px 10px; text-align: left; vertical-align: top; }
                 th { background-color: #f2f2f2; font-weight: bold; }
-                pre { 
-                    background-color: #f6f8fa; border: 1px solid #e2e8f0; padding: 10px; 
-                    font-family: 'Consolas', 'Courier New', monospace; font-size: 9.5pt; 
-                    white-space: pre-wrap; word-wrap: break-word; 
+                pre {
+                    background-color: #f6f8fa; border: 1px solid #e2e8f0; padding: 10px;
+                    font-family: 'Consolas', 'Courier New', monospace; font-size: 9.5pt;
+                    white-space: pre-wrap; word-wrap: break-word;
                 }
                 code { font-family: 'Consolas', 'Courier New', monospace; font-size: 9.5pt; background: #f1f5f9; padding: 2px 4px; }
                 pre code { background: transparent; padding: 0; }
@@ -400,7 +563,7 @@ exportWordBtn.addEventListener('click', () => {
 
     const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `${filename}.doc`;

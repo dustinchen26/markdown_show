@@ -59,7 +59,6 @@
             word-wrap: break-word; overflow-wrap: break-word;
         }
 
-        /* 標題 */
         .markdown-body h1, .markdown-body h2, .markdown-body h3,
         .markdown-body h4, .markdown-body h5, .markdown-body h6 {
             font-weight: 700; line-height: 1.3; color: #0f172a;
@@ -71,12 +70,10 @@
         .markdown-body h4 { font-size: 1.02em; }
         .markdown-body h5, .markdown-body h6 { font-size: 0.96em; color: #475569; }
 
-        /* 段落 */
         .markdown-body p { margin: 0.35em 0; }
         .markdown-body p:first-child { margin-top: 0; }
         .markdown-body p:last-child  { margin-bottom: 0; }
 
-        /* 清單 */
         .markdown-body ul, .markdown-body ol { margin: 0.35em 0; padding-left: 1.6em; }
         .markdown-body ul { list-style: disc; }
         .markdown-body ol { list-style: decimal; }
@@ -90,17 +87,14 @@
         .markdown-body li.task-list-item { list-style: none; margin-left: -1.4em; padding-left: 1.4em; }
         .markdown-body li.task-list-item input { margin-right: 0.4em; vertical-align: middle; }
 
-        /* 引用 */
         .markdown-body blockquote {
             margin: 0.5em 0; padding: 0.35em 0.9em;
             border-left: 3px solid #cbd5e1; background: #f8fafc;
             color: #475569; border-radius: 0 5px 5px 0;
         }
 
-        /* 分隔線 */
         .markdown-body hr { border: 0; border-top: 1px solid #eef2f6; margin: 0.8em 0; }
 
-        /* 文字樣式 */
         .markdown-body a { color: #2563eb; text-decoration: none; }
         .markdown-body a:hover { text-decoration: underline; }
         .markdown-body strong { font-weight: 700; color: #0f172a; }
@@ -108,14 +102,12 @@
         .markdown-body del { text-decoration: line-through; color: #94a3b8; }
         .markdown-body img { max-width: 100%; height: auto; border-radius: 4px; }
 
-        /* 行內程式碼 */
         .markdown-body :not(pre) > code {
             background: #f1f5f9; padding: 1px 5px; border-radius: 3px;
             font-family: 'JetBrains Mono', monospace; font-size: 0.88em;
             color: #be185d; word-break: break-word;
         }
 
-        /* 程式碼區塊 */
         .markdown-body pre {
             background: #f6f8fa; padding: 8px 12px; border-radius: 6px;
             border: 1px solid #e2e8f0; overflow-x: auto; margin: 0.5em 0;
@@ -126,7 +118,6 @@
             font-size: inherit; line-height: inherit; white-space: pre; word-break: normal;
         }
 
-        /* 表格：外套 wrapper 做橫向滾動；table 保留原生 table layout */
         .table-wrapper {
             overflow-x: auto; margin: 0.6em 0; border-radius: 5px;
             border: 1px solid #e4e9f0; background: #fff;
@@ -140,7 +131,6 @@
         .markdown-body table tbody tr:nth-child(even) td { background: #fafbfc; }
         .markdown-body table tbody tr:hover td { background: #f1f5f9; }
 
-        /* Mermaid */
         .markdown-body .mermaid { text-align: center; margin: 0.6em 0; overflow-x: auto; }
     </style>
 </head>
@@ -186,10 +176,6 @@ marked.setOptions({
     headerIds: false
 });
 
-/* ============================================================
-   前處理 1：補空行（表格 / 圍欄 / 列表）
-   前處理 2：表格內 \X 轉義保護（避免 \D 被吞成 D）
-   ============================================================ */
 function normalizeMarkdown(text) {
     text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     const lines = text.split('\n');
@@ -201,7 +187,6 @@ function normalizeMarkdown(text) {
         let line = lines[i];
         const topFence = line.match(/^(```+|~~~+)/);
 
-        // 1. 處理程式碼區塊 (Fence)
         if (topFence) {
             if (!inFence) {
                 const prev = out[out.length - 1];
@@ -222,7 +207,6 @@ function normalizeMarkdown(text) {
 
         if (inFence) { out.push(line); continue; }
 
-        // 2. 處理表格 (Table)
         const isTableLine = /^\s*\|/.test(line);
         if (isTableLine) {
             const prev = out[out.length - 1];
@@ -234,7 +218,6 @@ function normalizeMarkdown(text) {
             continue;
         }
 
-        // 3. 處理列表項 (List Item) - 為了解決緊貼文字導致解析失敗的問題
         const isListItem = /^\s*(?:\d+\.|[-*+])\s+/.test(line);
         if (isListItem) {
             const prev = out[out.length - 1];
@@ -284,17 +267,128 @@ function highlightAll(root) {
 }
 
 /* ============================================================
+   圖片轉換工具：保留 100% 原始解析度轉 PNG，僅限制 Word 版面顯示寬度
+   ============================================================ */
+function imageToPngDataUrl(imgEl, maxDisplayWidth = 580) {
+    return new Promise((resolve) => {
+        const src = imgEl.getAttribute('src');
+        if (!src) {
+            resolve(null);
+            return;
+        }
+
+        const tempImg = new Image();
+        tempImg.crossOrigin = 'anonymous';
+
+        tempImg.onload = () => {
+            try {
+                // 1. 取得圖片真實原始像素（不縮小，確保螢幕截圖文字 100% 清晰）
+                const natWidth = tempImg.naturalWidth || imgEl.width || 800;
+                const natHeight = tempImg.naturalHeight || imgEl.height || 600;
+
+                // 僅防呆超過 2560px 的極端超大圖，一般 1080p/2K 截圖原汁原味保留
+                let canvasW = natWidth;
+                let canvasH = natHeight;
+                const maxPixelWidth = 2560;
+                if (canvasW > maxPixelWidth) {
+                    canvasH = Math.round((canvasH * maxPixelWidth) / canvasW);
+                    canvasW = maxPixelWidth;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = canvasW;
+                canvas.height = canvasH;
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = false;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvasW, canvasH);
+                ctx.drawImage(tempImg, 0, 0, canvasW, canvasH);
+
+                // 2. 計算 Word 頁面上的版面顯示尺寸（不超過 A4 版心 580px）
+                let displayWidth = natWidth;
+                let displayHeight = natHeight;
+                if (displayWidth > maxDisplayWidth) {
+                    displayHeight = Math.round((displayHeight * maxDisplayWidth) / displayWidth);
+                    displayWidth = maxDisplayWidth;
+                }
+
+                const pngDataUrl = canvas.toDataURL('image/png');
+                resolve({ dataUrl: pngDataUrl, width: displayWidth, height: displayHeight });
+            } catch (err) {
+                console.warn('[圖片轉 PNG 失敗]', err);
+                resolve(null);
+            }
+        };
+
+        tempImg.onerror = () => resolve(null);
+        tempImg.src = src;
+    });
+}
+
+function svgToPngDataUrl(svgEl, maxDisplayWidth = 580) {
+    return new Promise((resolve) => {
+        try {
+            const bbox = svgEl.getBoundingClientRect();
+            const svgClone = svgEl.cloneNode(true);
+            let natWidth = parseFloat(svgClone.getAttribute('width')) || bbox.width || 580;
+            let natHeight = parseFloat(svgClone.getAttribute('height')) || bbox.height || 300;
+
+            if (!svgClone.getAttribute('xmlns')) {
+                svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            }
+            svgClone.setAttribute('width', natWidth);
+            svgClone.setAttribute('height', natHeight);
+
+            const svgStr = new XMLSerializer().serializeToString(svgClone);
+            const svgBase64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr)));
+
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                // 使用 3 倍超採樣渲染高畫質 PNG
+                const scale = 3;
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(natWidth * scale);
+                canvas.height = Math.round(natHeight * scale);
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(tempImg, 0, 0, canvas.width, canvas.height);
+
+                let displayWidth = natWidth;
+                let displayHeight = natHeight;
+                if (displayWidth > maxDisplayWidth) {
+                    displayHeight = Math.round((displayHeight * maxDisplayWidth) / displayWidth);
+                    displayWidth = maxDisplayWidth;
+                }
+
+                resolve({ dataUrl: canvas.toDataURL('image/png'), width: displayWidth, height: displayHeight });
+            };
+            tempImg.onerror = () => resolve(null);
+            tempImg.src = svgBase64;
+        } catch (err) {
+            resolve(null);
+        }
+    });
+}
+
+/* Base64 字串每 76 字元換行，符合標準 MIME 規範 */
+function foldBase64(b64) {
+    return b64.match(/.{1,76}/g).join('\r\n');
+}
+
+/* ============================================================
    主流程
    ============================================================ */
-const fileInput    = document.getElementById('fileInput');
-const reportViewer = document.getElementById('reportViewer');
-const loading      = document.getElementById('loading');
+const fileInput     = document.getElementById('fileInput');
+const reportViewer  = document.getElementById('reportViewer');
+const loading       = document.getElementById('loading');
 const exportWordBtn = document.getElementById('exportWordBtn');
 
 fileInput.addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
     document.getElementById('fileName').textContent = file.name;
+    loading.textContent = '解析報告中，請稍候…';
     loading.style.display = 'flex';
     exportWordBtn.disabled = true;
 
@@ -328,7 +422,6 @@ fileInput.addEventListener('change', function (e) {
                 a.setAttribute('rel', 'noopener noreferrer');
             });
 
-            // 渲染成功後啟用匯出按鈕
             exportWordBtn.disabled = false;
 
         } catch (err) {
@@ -346,83 +439,162 @@ fileInput.addEventListener('change', function (e) {
 document.getElementById('clearBtn').onclick = () => location.reload();
 
 /* ============================================================
-   匯出 Word 功能 (使用 MHTML 封裝，保留 HTML 排版與 CSS)
+   匯出 Word 功能 (封裝為 Word 2007 原生支援的高畫質 MHTML .doc 格式)
    ============================================================ */
-exportWordBtn.addEventListener('click', () => {
+exportWordBtn.addEventListener('click', async () => {
     const body = reportViewer.querySelector('.markdown-body');
     if (!body) return;
 
-    // 複製一份 DOM 以避免影響原本網頁畫面
-    const clone = body.cloneNode(true);
+    loading.textContent = '正在封裝高畫質圖片並匯出 Word，請稍候…';
+    loading.style.display = 'flex';
 
-    // 移除 table-wrapper，避免 Word 排版異常
-    clone.querySelectorAll('.table-wrapper').forEach(wrapper => {
-        wrapper.replaceWith(...wrapper.childNodes);
-    });
+    try {
+        const clone = body.cloneNode(true);
+        const mhtmlParts = [];
+        let imgCounter = 0;
 
-    // 取得當前檔名（去掉 .md）
-    let filename = document.getElementById('fileName').textContent || 'BIOS_Report';
-    filename = filename.replace(/\.md$/i, '');
-    
-    // 構建 Word 專用的 HTML
-    // 為了讓 Word 正確渲染表格與程式碼，這裡寫入內聯 CSS
-    const header = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-              xmlns:w='urn:schemas-microsoft-com:office:word' 
-              xmlns='http://www.w3.org/TR/REC-html40'>
-        <head>
-            <meta charset='utf-8'>
-            <title>${filename}</title>
-            <style>
-                @page { size: A4; margin: 2cm; }
-                body { 
-                    font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
-                    font-size: 11pt; line-height: 1.5; color: #1e293b;
+        // 1. 移除 table-wrapper
+        clone.querySelectorAll('.table-wrapper').forEach(wrapper => {
+            wrapper.replaceWith(...wrapper.childNodes);
+        });
+
+        // 2. 保留原圖高解析度轉 PNG，並以 width/height 屬性控制 Word 內的顯示大小
+        const origImgs = body.querySelectorAll('img');
+        const cloneImgs = clone.querySelectorAll('img');
+        for (let i = 0; i < cloneImgs.length; i++) {
+            const targetImg = origImgs[i] || cloneImgs[i];
+            const converted = await imageToPngDataUrl(targetImg, 580);
+            if (converted && converted.dataUrl) {
+                const rawBase64 = converted.dataUrl.replace(/^data:image\/png;base64,/, '');
+                const virtualUrl = `file:///C:/report_assets/image_${imgCounter++}.png`;
+
+                cloneImgs[i].setAttribute('src', virtualUrl);
+                if (converted.width) {
+                    cloneImgs[i].setAttribute('width', converted.width);
+                    cloneImgs[i].style.width = converted.width + 'px';
                 }
-                h1, h2, h3, h4, h5, h6 { color: #0f172a; margin-top: 1.2em; margin-bottom: 0.5em; }
-                h1 { font-size: 18pt; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-                h2 { font-size: 15pt; border-bottom: 1px solid #eee; padding-bottom: 3px; }
-                h3 { font-size: 13pt; }
-                p { margin: 0.5em 0; }
-                ul, ol { margin-top: 0.5em; margin-bottom: 0.5em; padding-left: 20px; }
-                li { margin-bottom: 3px; }
-                
-                /* 表格樣式 */
-                table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 10pt; }
-                th, td { border: 1px solid #c0c0c0; padding: 6px 10px; text-align: left; vertical-align: top; }
-                th { background-color: #f2f2f2; font-weight: bold; }
-                
-                /* 程式碼區塊 */
-                pre { 
-                    background-color: #f6f8fa; border: 1px solid #e2e8f0; padding: 10px; 
-                    font-family: 'Consolas', 'Courier New', monospace; font-size: 9.5pt; 
-                    white-space: pre-wrap; word-wrap: break-word; 
+                if (converted.height) {
+                    cloneImgs[i].setAttribute('height', converted.height);
+                    cloneImgs[i].style.height = converted.height + 'px';
                 }
-                code { font-family: 'Consolas', 'Courier New', monospace; font-size: 9.5pt; background: #f1f5f9; padding: 2px 4px; }
-                pre code { background: transparent; padding: 0; }
-                
-                /* 其他 */
-                blockquote { border-left: 3px solid #ccc; padding-left: 10px; color: #666; margin-left: 0; }
-                a { color: #2563eb; text-decoration: underline; }
-                hr { border: none; border-top: 1px solid #eee; margin: 20px 0; }
-            </style>
-        </head>
-        <body>`;
 
-    const footer = `</body></html>`;
-    const html = header + clone.innerHTML + footer;
+                mhtmlParts.push({
+                    location: virtualUrl,
+                    contentType: 'image/png',
+                    base64: foldBase64(rawBase64)
+                });
+            }
+        }
 
-    // 加入 BOM (\ufeff) 避免 Word 開啟時中文亂碼
-    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${filename}.doc`; // 使用 .doc 副檔名讓 Word 能直接開啟
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+        // 3. 將 Mermaid SVG 轉成 3 倍高畫質 PNG 並封裝進 MHTML
+        const origMermaids = body.querySelectorAll('.mermaid');
+        const cloneMermaids = clone.querySelectorAll('.mermaid');
+        for (let i = 0; i < cloneMermaids.length; i++) {
+            const svg = origMermaids[i] ? origMermaids[i].querySelector('svg') : null;
+            if (svg) {
+                const converted = await svgToPngDataUrl(svg, 580);
+                if (converted && converted.dataUrl) {
+                    const rawBase64 = converted.dataUrl.replace(/^data:image\/png;base64,/, '');
+                    const virtualUrl = `file:///C:/report_assets/mermaid_${imgCounter++}.png`;
+
+                    const img = document.createElement('img');
+                    img.setAttribute('src', virtualUrl);
+                    img.setAttribute('width', converted.width);
+                    img.setAttribute('height', converted.height);
+                    cloneMermaids[i].innerHTML = '';
+                    cloneMermaids[i].appendChild(img);
+
+                    mhtmlParts.push({
+                        location: virtualUrl,
+                        contentType: 'image/png',
+                        base64: foldBase64(rawBase64)
+                    });
+                }
+            }
+        }
+
+        let filename = document.getElementById('fileName').textContent || 'BIOS_Report';
+        filename = filename.replace(/\.md$/i, '');
+
+        const htmlContent = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>${filename}</title>
+<style>
+    @page { size: A4; margin: 2cm; }
+    body { 
+        font-family: 'Microsoft JhengHei', 'PMingLiU', sans-serif; 
+        font-size: 11pt; line-height: 1.5; color: #1e293b;
+    }
+    h1, h2, h3, h4, h5, h6 { color: #0f172a; margin-top: 1.2em; margin-bottom: 0.5em; }
+    h1 { font-size: 18pt; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+    h2 { font-size: 15pt; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+    h3 { font-size: 13pt; }
+    p { margin: 0.5em 0; }
+    ul, ol { margin-top: 0.5em; margin-bottom: 0.5em; padding-left: 20px; }
+    li { margin-bottom: 3px; }
+    table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 10pt; }
+    th, td { border: 1px solid #c0c0c0; padding: 6px 10px; text-align: left; vertical-align: top; }
+    th { background-color: #f2f2f2; font-weight: bold; }
+    pre { 
+        background-color: #f6f8fa; border: 1px solid #e2e8f0; padding: 10px; 
+        font-family: 'Consolas', 'Courier New', monospace; font-size: 9.5pt; 
+        white-space: pre-wrap; word-wrap: break-word; 
+    }
+    code { font-family: 'Consolas', 'Courier New', monospace; font-size: 9.5pt; background: #f1f5f9; padding: 2px 4px; }
+    pre code { background: transparent; padding: 0; }
+    blockquote { border-left: 3px solid #ccc; padding-left: 10px; color: #666; margin-left: 0; }
+    a { color: #2563eb; text-decoration: underline; }
+    hr { border: none; border-top: 1px solid #eee; margin: 20px 0; }
+</style>
+</head>
+<body>
+${clone.innerHTML}
+</body>
+</html>`;
+
+        const boundary = '----=_NextPart_01DC_WORD2007_EXPORT';
+        const docLocation = 'file:///C:/report_assets/document.htm';
+
+        let mhtml = '';
+        mhtml += 'MIME-Version: 1.0\r\n';
+        mhtml += `Content-Type: multipart/related; boundary="${boundary}"\r\n\r\n`;
+
+        mhtml += `--${boundary}\r\n`;
+        mhtml += 'Content-Type: text/html; charset="utf-8"\r\n';
+        mhtml += 'Content-Transfer-Encoding: 8bit\r\n';
+        mhtml += `Content-Location: ${docLocation}\r\n\r\n`;
+        mhtml += htmlContent + '\r\n\r\n';
+
+        for (const part of mhtmlParts) {
+            mhtml += `--${boundary}\r\n`;
+            mhtml += `Content-Type: ${part.contentType}\r\n`;
+            mhtml += 'Content-Transfer-Encoding: base64\r\n';
+            mhtml += `Content-Location: ${part.location}\r\n\r\n`;
+            mhtml += part.base64 + '\r\n\r\n';
+        }
+
+        mhtml += `--${boundary}--\r\n`;
+
+        const blob = new Blob([mhtml], { type: 'application/msword;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${filename}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        console.error(err);
+        alert('匯出 Word 失敗：' + err.message);
+    } finally {
+        loading.style.display = 'none';
+    }
 });
 </script>
 </body>
